@@ -51,7 +51,7 @@
     button {
       display: inline-block;
       padding: 12px 20px;
-      margin: 8px 8px 8px 0;
+      margin: 8px 0;
       font-size: 16px;
       border: none;
       border-radius: 10px;
@@ -61,8 +61,6 @@
       transition: 0.2s;
     }
     button:hover { background: #1d4ed8; }
-    button.reset { background: #64748b; }
-    button.reset:hover { background: #475569; }
 
     #result {
       margin-top: 24px;
@@ -101,7 +99,7 @@
     @media (max-width: 480px) {
       .container { padding: 16px; }
       h1 { font-size: 20px; }
-      button { width: 100%; margin-right: 0; }
+      button { width: 100%; }
       .grade-mark { width: 64px; height: 64px; font-size: 36px; }
     }
   </style>
@@ -115,7 +113,6 @@
 
     <div>
       <button type="button" onclick="checkQuiz()">Проверить результаты</button>
-      <button type="button" class="reset" onclick="resetQuiz()">Пройти заново</button>
     </div>
 
     <div id="result"></div>
@@ -222,14 +219,6 @@
 
       document.getElementById('result').innerHTML = resultHtml;
       document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-
-    // ==== Сброс ====
-    function resetQuiz() {
-      form.reset();
-      document.querySelectorAll('.question').forEach((el) => el.classList.remove('correct', 'incorrect'));
-      document.getElementById('result').innerHTML = '';
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   </script>
 </body>
