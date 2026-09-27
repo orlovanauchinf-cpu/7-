@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Тест: Устройства компьютера и их функции</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 16px;
+      font-family: Arial, sans-serif;
+      background: #f4f7fb;
+      color: #222;
+      line-height: 1.5;
+    }
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+    h1 { margin-top: 0; font-size: 24px; text-align: center; }
+    .subtitle { text-align: center; color: #555; margin-bottom: 20px; }
+
+    /* ---- Блок с QR ---- */
+    .qr-block {
+      text-align: center;
+      background: linear-gradient(135deg, #eef4ff 0%, #e0ecff 100%);
+      padding: 20px;
+      border-radius: 16px;
+      margin-bottom: 24px;
+      border: 2px dashed #93b4f0;
+    }
+    .qr-block h2 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      color: #1e40af;
+    }
+    #qrcode {
+      display: inline-block;
+      margin: 12px auto;
+      padding: 12px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .qr-hint {
+      font-size: 14px;
+      color: #1e40af;
+      margin: 8px 0 12px;
+    }
+    .qr-buttons {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn-small {
+      padding: 8px 14px;
+      font-size: 14px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      background: #2563eb;
+      color: #fff;
+      transition: 0.2s;
+    }
+    .btn-small:hover { background: #1d4ed8; }
+    .btn-small.secondary { background: #64748b; }
+    .btn-small.secondary:hover { background: #475569; }
+    .small {
+      font-size: 11px;
+      color: #555;
+      word-break: break-all;
+      margin-top: 8px;
+    }
+
+    /* ---- Вопросы ---- */
+    .question {
+      margin-bottom: 20px;
+      padding: 16px;
+      border: 2px solid #e0e6ef;
+      border-radius: 12px;
+      transition: 0.2s;
+    }
+    .question.correct { border-color: #2ecc71; background: #f0fff4; }
+    .question.incorrect { border-color: #e74c3c; background: #fff5f5; }
+    .question p { font-weight: bold; margin: 0 0 12px; }
+    .option {
+      display: block;
+      margin: 8px 0;
+      padding: 10px 12px;
+      background: #f8fafc;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 1px solid #dde3ea;
+    }
+    .option:hover { background: #eef4ff; }
+    .option input { margin-right: 8px; }
+
+    button {
+      display: inline-block;
+      padding: 12px 20px;
+      margin: 8px 8px 8px 0;
+      font-size: 16px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      background: #2563eb;
+      color: #fff;
+      transition: 0.2s;
+    }
+    button:hover { background: #1d4ed8; }
+    button.reset { background: #64748b; }
+    button.reset:hover { background: #475569; }
+
+    #result {
+      margin-top: 24px;
+      padding: 16px;
+      border-radius: 12px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+    }
+    #result h2 { margin-top: 0; }
+    #result ul { padding-left: 20px; }
+
+    .grade-box {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      background: #fff;
+      border: 2px solid #e2e8f0;
+    }
+    .grade-mark {
+      flex-shrink: 0;
+      width: 80px; height: 80px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 48px; font-weight: bold;
+      border-radius: 50%; color: #fff;
+    }
+    .grade-5 .grade-mark { background: #2ecc71; }
+    .grade-4 .grade-mark { background: #3498db; }
+    .grade-3 .grade-mark { background: #f39c12; }
+    .grade-2 .grade-mark { background: #e74c3c; }
+    .grade-text { font-size: 16px; }
+    .grade-text strong { font-size: 18px; }
+
+    /* ---- Модальное окно с большим QR ---- */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .modal.open { display: flex; }
+    .modal-content {
+      background: #fff;
+      border-radius: 20px;
+      padding: 32px;
+      text-align: center;
+      max-width: 90vw;
+      max-height: 90vh;
+      overflow: auto;
+    }
+    .modal-content h2 { margin: 0 0 8px; font-size: 26px; }
+    .modal-content p { color: #555; margin: 0 0 16px; }
+    #qrcode-big {
+      display: inline-block;
+      padding: 12px;
+      background: #fff;
+      border-radius: 12px;
+    }
+    .modal-close {
+      margin-top: 16px;
+      background: #64748b;
+    }
+
+    @media (max-width: 480px) {
+      .container { padding: 16px; }
+      h1 { font-size: 20px; }
+      button { width: 100%; margin-right: 0; }
+      .grade-mark { width: 64px; height: 64px; font-size: 36px; }
+      .modal-content { padding: 20px; }
+    }
+
+    /* ---- Печать ---- */
+    @media print {
+      body { background: #fff; padding: 0; }
+      .container > *:not(.qr-block) { display: none !important; }
+      .qr-block { border: none; background: #fff; }
+      .qr-buttons, .small, .qr-hint { display: none !important; }
+      #qrcode { box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Устройства компьютера и их функции</h1>
+    <p class="subtitle">Информатика • 7 класс • 5 вопросов</p>
+
+    <!-- ================== БЛОК С QR-КОДОМ ================== -->
+    <div class="qr-block">
+      <h2>📱 Пройди тест с телефона</h2>
+      <div id="qrcode"></div>
+      <p class="qr-hint">
+        Открой камеру телефона → наведи на QR → перейди по ссылке
+      </p>
+      <div class="qr-buttons">
+        <button class="btn-small" onclick="openModal()">🔍 Показать крупно</button>
+        <button class="btn-small secondary" onclick="window.print()">🖨️ Распечатать</button>
+      </div>
+      <p class="small">Ссылка: <span id="url"></span></p>
+    </div>
+    <!-- ==================================================== -->
+
+    <form id="quiz"></form>
+
+    <div>
+      <button type="button" onclick="checkQuiz()">Проверить результаты</button>
+      <button type="button" class="reset" onclick="resetQuiz()">Пройти заново</button>
+    </div>
+
+    <div id="result"></div>
+  </div>
+
+  <!-- Модальное окно с большим QR -->
+  <div class="modal" id="qrModal" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <h2>Наведи камеру телефона на QR-код</h2>
+      <p>Тест: «Устройства компьютера и их функции», 7 класс</p>
+      <div id="qrcode-big"></div>
+      <button class="modal-close" onclick="closeModal()">Закрыть</button>
+    </div>
+  </div>
+
+  <!-- Библиотека для QR-кода -->
+  <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
+
+  <script>
+    // ==== QR-код ====
+    const currentUrl = window.location.href;
+    document.getElementById('url').textContent = currentUrl;
+
+    // Маленький QR на странице
+    new QRCode(document.getElementById('qrcode'), {
+      text: currentUrl,
+      width: 240,
+      height: 240,
+      colorDark: '#111111',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.H
+    });
+
+    // Большой QR в модальном окне (создаём один раз)
+    let bigQrCreated = false;
+    function openModal() {
+      if (!bigQrCreated) {
+        new QRCode(document.getElementById('qrcode-big'), {
+          text: currentUrl,
+          width: 400,
+          height: 400,
+          colorDark: '#111111',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.H
+        });
+        bigQrCreated = true;
+      }
+      document.getElementById('qrModal').classList.add('open');
+    }
+
+    function closeModal(e) {
+      if (e && e.target !== document.getElementById('qrModal') && e.type === 'click' && e.currentTarget === e.target) {
+        // клик по фону
+      }
+      document.getElementById('qrModal').classList.remove('open');
+    }
+
+    // Закрытие по Esc
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeModal();
+    });
+
+    // ==== Вопросы ====
+    const questions = [
+      {
+        question: '1. Какое устройство относится к устройствам ввода информации?',
+        options: ['Монитор', 'Клавиатура', 'Принтер', 'Колонки'],
+        correct: 1
+      },
+      {
+        question: '2. Какое устройство относится к устройствам вывода информации?',
+        options: ['Сканер', 'Мышь', 'Монитор', 'Микрофон'],
+        correct: 2
+      },
+      {
+        question: '3. Какую основную функцию выполняет процессор?',
+        options: ['Хранение данных', 'Обработка информации', 'Ввод данных', 'Вывод данных'],
+        correct: 1
+      },
+      {
+        question: '4. Какое устройство предназначено для долговременного хранения информации?',
+        options: ['Оперативная память', 'Процессор', 'Жёсткий диск (SSD)', 'Видеокарта'],
+        correct: 2
+      },
+      {
+        question: '5. Какое устройство служит для вывода текста и графики на бумагу?',
+        options: ['Сканер', 'Принтер', 'Монитор', 'Клавиатура'],
+        correct: 1
+      }
+    ];
+
+    const form = document.getElementById('quiz');
+
+    questions.forEach((q, i) => {
+      const block = document.createElement('div');
+      block.className = 'question';
+      block.innerHTML = `<p>${q.question}</p>`;
+      q.options.forEach((opt, j) => {
+        const label = document.createElement('label');
+        label.className = 'option';
+        label.innerHTML = `<input type="radio" name="q${i}" value="${j}"> ${opt}`;
+        block.appendChild(label);
+      });
+      form.appendChild(block);
+    });
+
+    // ==== Перевод баллов в оценку ====
+    function getGrade(score, total) {
+      const percent = score / total * 100;
+      if (percent >= 90) return { mark: 5, label: 'Отлично', className: 'grade-5' };
+      if (percent >= 70) return { mark: 4, label: 'Хорошо', className: 'grade-4' };
+      if (percent >= 50) return { mark: 3, label: 'Удовлетворительно', className: 'grade-3' };
+      return { mark: 2, label: 'Неудовлетворительно', className: 'grade-2' };
+    }
+
+    // ==== Проверка ====
+    function checkQuiz() {
+      let score = 0;
+      const blocks = form.querySelectorAll('.question');
+
+      let unanswered = 0;
+      questions.forEach((q, i) => {
+        if (!document.querySelector(`input[name="q${i}"]:checked`)) unanswered++;
+      });
+      if (unanswered > 0) {
+        if (!confirm(`Вы ответили не на все вопросы (без ответа: ${unanswered}). Проверить результаты?`)) return;
+      }
+
+      questions.forEach((q, i) => {
+        const selected = document.querySelector(`input[name="q${i}"]:checked`);
+        const block = blocks[i];
+        block.classList.remove('correct', 'incorrect');
+        if (selected && parseInt(selected.value) === q.correct) {
+          score++;
+          block.classList.add('correct');
+        } else {
+          block.classList.add('incorrect');
+        }
+      });
+
+      const grade = getGrade(score, questions.length);
+
+      let resultHtml = `
+        <div class="grade-box ${grade.className}">
+          <div class="grade-mark">${grade.mark}</div>
+          <div class="grade-text">
+            <strong>Оценка: ${grade.mark} (${grade.label})</strong><br>
+            Правильных ответов: <b>${score}</b> из <b>${questions.length}</b>
+          </div>
+        </div>
+      `;
+      resultHtml += '<h3>Правильные ответы:</h3><ul>';
+      questions.forEach((q) => {
+        resultHtml += `<li>${q.question} — <b>${q.options[q.correct]}</b></li>`;
+      });
+      resultHtml += '</ul>';
+
+      document.getElementById('result').innerHTML = resultHtml;
+      document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // ==== Сброс ====
+    function resetQuiz() {
+      form.reset();
+      document.querySelectorAll('.question').forEach((el) => el.classList.remove('correct', 'incorrect'));
+      document.getElementById('result').innerHTML = '';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  </script>
+</body>
+</html>
