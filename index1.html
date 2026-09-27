@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Тренажёр: Программное обеспечение (7 класс)</title>
+<style>
+  :root{
+    --bg:#eef2f9;
+    --card:#ffffff;
+    --primary:#2563eb;
+    --primary-dark:#1e40af;
+    --accent:#f59e0b;
+    --green:#16a34a;
+    --green-bg:#dcfce7;
+    --red:#dc2626;
+    --red-bg:#fee2e2;
+    --text:#1f2937;
+    --muted:#6b7280;
+    --border:#e5e7eb;
+    --shadow:0 6px 18px rgba(15,23,42,.08);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Segoe UI', Roboto, Arial, sans-serif;
+    background:linear-gradient(180deg,#eef2f9,#e0e9f7 300px,#eef2f9 100%);
+    color:var(--text);
+    line-height:1.6;
+    min-height:100vh;
+  }
+  header{
+    background:linear-gradient(135deg,#2563eb,#7c3aed);
+    color:#fff;
+    padding:32px 20px 26px;
+    text-align:center;
+    box-shadow:0 6px 20px rgba(37,99,235,.25);
+  }
+  header h1{margin:0 0 6px;font-size:1.7rem;}
+  header p{margin:0;opacity:.9;font-size:.95rem;}
+
+  .progress-wrap{
+    position:sticky;top:0;z-index:50;
+    background:rgba(255,255,255,.95);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--border);
+    padding:12px 20px;
+  }
+  .progress-info{
+    max-width:900px;margin:0 auto;
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:.9rem;color:var(--muted);margin-bottom:6px;
+  }
+  .progress-info strong{color:var(--primary-dark);font-size:1rem;}
+  .progress-bar{
+    max-width:900px;margin:0 auto;
+    height:10px;background:#e5e7eb;border-radius:6px;overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;width:0;
+    background:linear-gradient(90deg,#2563eb,#7c3aed);
+    border-radius:6px;
+    transition:width .4s ease;
+  }
+
+  main{max-width:900px;margin:0 auto;padding:26px 18px 80px;}
+
+  .task{
+    background:var(--card);
+    border-radius:14px;
+    padding:24px;
+    margin-bottom:22px;
+    box-shadow:var(--shadow);
+    border-left:5px solid var(--primary);
+  }
+  .task.locked{opacity:.55;pointer-events:none;filter:grayscale(.3);}
+  .task h2{
+    font-size:1.15rem;margin:0 0 6px;color:var(--primary-dark);
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  }
+  .task-num{
+    background:var(--primary);color:#fff;
+    width:30px;height:30px;border-radius:50%;
+    display:inline-flex;align-items:center;justify-content:center;
+    font-size:.9rem;flex-shrink:0;
+  }
+  .task-desc{color:var(--muted);font-size:.92rem;margin:0 0 16px;}
+
+  .task-status{
+    margin-left:auto;font-size:.85rem;font-weight:600;
+    padding:3px 10px;border-radius:12px;
+    background:#f1f5f9;color:var(--muted);
+  }
+  .task-status.ok{background:var(--green-bg);color:var(--green);}
+  .task-status.bad{background:var(--red-bg);color:var(--red);}
+
+  /* --- Задание 1: классификация --- */
+  .pool{
+    display:flex;flex-wrap:wrap;gap:10px;
+    min-height:56px;padding:12px;
+    background:#f8fafc;border:2px dashed var(--border);
+    border-radius:10px;margin-bottom:16px;
+  }
+  .chip{
+    background:#fff;border:1px solid var(--border);
+    padding:7px 14px;border-radius:20px;
+    cursor:grab;user-select:none;font-size:.9rem;
+    box-shadow:0 1px 3px rgba(0,0,0,.06);transition:.15s;
+  }
+  .chip:hover{border-color:var(--primary);transform:translateY(-1px);}
+  .chip.dragging{opacity:.4;}
+  .chip.correct{background:var(--green-bg);border-color:var(--green);color:#166534;}
+  .chip.wrong{background:var(--red-bg);border-color:var(--red);color:#991b1b;}
+  .chip.picked{outline:3px solid var(--primary);outline-offset:1px;}
+  .zones{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+  .zone{
+    background:#f8fafc;border:2px dashed var(--border);
+    border-radius:10px;padding:12px;min-height:130px;transition:.2s;
+  }
+  .zone.drag-over{border-color:var(--primary);background:#eef2ff;}
+  .zone h4{margin:0 0 10px;font-size:.9rem;color:var(--primary-dark);text-align:center;}
+  .zone-items{display:flex;flex-direction:column;gap:8px;}
+
+  /* --- Задание 2: сопоставление --- */
+  .match-grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:14px;
+  }
+  .match-col h4{font-size:.9rem;color:var(--primary-dark);margin:0 0 10px;}
+  .match-item{
+    padding:10px 14px;border:1px solid var(--border);border-radius:8px;
+    background:#f8fafc;margin-bottom:8px;cursor:pointer;
+    font-size:.9rem;transition:.15s;
+  }
+  .match-item:hover{border-color:var(--primary);background:#eef2ff;}
+  .match-item.selected{background:#dbeafe;border-color:var(--primary);}
+  .match-item.matched{background:var(--green-bg);border-color:var(--green);cursor:default;}
+  .match-item.wrong{background:var(--red-bg);border-color:var(--red);}
+
+  /* --- Задание 3: пропуски --- */
+  .fill-text{font-size:.98rem;line-height:2.2;}
+  .fill-input{
+    border:none;border-bottom:2px solid var(--primary);
+    background:#f8fafc;padding:4px 8px;
+    font-family:inherit;font-size:.95rem;min-width:140px;
+    border-radius:4px 4px 0 0;
+  }
+  .fill-input:focus{outline:none;background:#eef2ff;}
+  .fill-input.correct{background:var(--green-bg);border-color:var(--green);}
+  .fill-input.wrong{background:var(--red-bg);border-color:var(--red);}
+
+  /* --- Задание 4: викторина --- */
+  .quiz-question{
+    padding:14px;border:1px solid var(--border);border-radius:10px;margin-bottom:12px;
+  }
+  .quiz-question p{margin:0 0 10px;font-weight:600;font-size:.95rem;}
+  .quiz-options{display:flex;flex-direction:column;gap:8px;}
+  .quiz-option{
+    text-align:left;padding:9px 14px;background:#f8fafc;
+    border:1px solid var(--border);border-radius:8px;
+    cursor:pointer;transition:.15s;font-family:inherit;font-size:.92rem;
+  }
+  .quiz-option:hover{background:#eef2ff;border-color:var(--primary);}
+  .quiz-option.chosen{background:#dbeafe;border-color:var(--primary);}
+  .quiz-option.correct{background:var(--green-bg);border-color:var(--green);font-weight:600;}
+  .quiz-option.wrong{background:var(--red-bg);border-color:var(--red);}
+
+  /* --- Задание 5: верно/неверно --- */
+  .tf-item{
+    display:flex;justify-content:space-between;align-items:center;
+    gap:12px;padding:12px 14px;border:1px solid var(--border);
+    border-radius:10px;margin-bottom:10px;background:#f8fafc;
+  }
+  .tf-item p{margin:0;font-size:.94rem;}
+  .tf-buttons{display:flex;gap:8px;flex-shrink:0;}
+  .tf-btn{
+    border:1px solid var(--border);background:#fff;
+    padding:6px 14px;border-radius:8px;cursor:pointer;
+    font-family:inherit;font-size:.88rem;transition:.15s;
+  }
+  .tf-btn:hover{border-color:var(--primary);}
+  .tf-btn.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+  .tf-item.correct{border-color:var(--green);background:var(--green-bg);}
+  .tf-item.wrong{border-color:var(--red);background:var(--red-bg);}
+
+  /* --- Кнопки и результат --- */
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;}
+  .btn{
+    background:var(--primary);color:#fff;border:none;
+    padding:10px 20px;border-radius:8px;cursor:pointer;
+    font-size:.94rem;font-family:inherit;transition:.2s;
+  }
+  .btn:hover{background:var(--primary-dark);}
+  .btn.ghost{background:transparent;color:var(--primary);border:2px solid var(--primary);}
+  .btn.ghost:hover{background:#eef2ff;}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+
+  #final{
+    display:none;
+    background:linear-gradient(135deg,#2563eb,#7c3aed);
+    color:#fff;text-align:center;padding:30px;border-radius:14px;
+    box-shadow:0 10px 30px rgba(37,99,235,.3);
+    margin-top:30px;
+  }
+  #final.show{display:block;animation:pop .4s ease;}
+  #final h2{margin:0 0 10px;font-size:1.4rem;color:#fff;}
+  #final .score{font-size:2.6rem;font-weight:700;margin:10px 0;}
+  #final .mark{font-size:1.3rem;opacity:.95;}
+  @keyframes pop{from{transform:scale(.9);opacity:0;}to{transform:scale(1);opacity:1;}}
+
+  @media(max-width:720px){
+    .zones{grid-template-columns:1fr;}
+    .match-grid{grid-template-columns:1fr;}
+    .tf-item{flex-direction:column;align-items:flex-start;}
+    header h1{font-size:1.3rem;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🎯 Тренажёр: Программное обеспечение</h1>
+  <p>Информатика · 7 класс · 5 заданий · закрепи тему и проверь себя</p>
+</header>
+
+<div class="progress-wrap">
+  <div class="progress-info">
+    <span>Выполнено заданий: <strong id="tasks-done">0</strong> / 5</span>
+    <span>Баллы: <strong id="score">0</strong></span>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+</div>
+
+<main>
+
+  <!-- ============ ЗАДАНИЕ 1 ============ -->
+  <section class="task" id="task1">
+    <h2><span class="task-num">1</span> Классификация ПО <span class="task-status" id="st1">не выполнено</span></h2>
+    <p class="task-desc">Перетащи (или выбери кликом программу, а затем кликни на категорию) — распредели все программы по трём группам.</p>
+    <div class="pool" id="pool"></div>
+    <div class="zones">
+      <div class="zone" data-type="system">
+        <h4>Системное ПО</h4><div class="zone-items"></div>
+      </div>
+      <div class="zone" data-type="app">
+        <h4>Прикладное ПО</h4><div class="zone-items"></div>
+      </div>
+      <div class="zone" data-type="dev">
+        <h4>Инструментальное ПО</h4><div class="zone-items"></div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn" onclick="check1()">Проверить</button>
+      <button class="btn ghost" onclick="reset1()">Сбросить</button>
+    </div>
+  </section>
+
+  <!-- ============ ЗАДАНИЕ 2 ============ -->
+  <section class="task locked" id="task2">
+    <h2><span class="task-num">2</span> Соотнеси программу и её назначение <span class="task-status" id="st2">не выполнено</span></h2>
+    <p class="task-desc">Нажми на программу слева, затем на подходящее назначение справа. Пары подсвечиваются зелёным.</p>
+    <div class="match-grid">
+      <div class="match-col">
+        <h4>Программа</h4>
+        <div id="match-left"></div>
+      </div>
+      <div class="match-col">
+        <h4>Назначение</h4>
+        <div id="match-right"></div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn ghost" onclick="reset2()">Сбросить</button>
+    </div>
+  </section>
+
+  <!-- ============ ЗАДАНИЕ 3 ============ -->
+  <section class="task locked" id="task3">
+    <h2><span class="task-num">3</span> Вставь пропущенное слово <span class="task-status" id="st3">не выполнено</span></h2>
+    <p class="task-desc">Заполни пропуски в определениях. Регистр не важен.</p>
+    <div class="fill-text">
+      <p>1. <strong>Операционная система</strong> относится к
+        <input class="fill-input" data-answer="системному" placeholder="..."> ПО.</p>
+      <p>2. <strong>Microsoft Word</strong> — это пример
+        <input class="fill-input" data-answer="прикладного" placeholder="..."> ПО.</p>
+      <p>3. <strong>Python</strong> и <strong>PascalABC</strong> — это
+        <input class="fill-input" data-answer="инструментальное|системы программирования" placeholder="..."> ПО.</p>
+      <p>4. Программа, которая бесплатно работает только 30 дней, называется
+        <input class="fill-input" data-answer="условно-бесплатной|trial|пробной" placeholder="...">.</p>
+      <p>5. Программы для ЭВМ охраняются
+        <input class="fill-input" data-answer="авторским правом|авторское право" placeholder="...">.</p>
+    </div>
+    <div class="actions">
+      <button class="btn" onclick="check3()">Проверить</button>
+      <button class="btn ghost" onclick="reset3()">Сбросить</button>
+    </div>
+  </section>
+
+  <!-- ============ ЗАДАНИЕ 4 ============ -->
+  <section class="task locked" id="task4">
+    <h2><span class="task-num">4</span> Викторина <span class="task-status" id="st4">не выполнено</span></h2>
+    <p class="task-desc">Выбери один вариант ответа в каждом вопросе.</p>
+    <div id="quiz"></div>
+    <div class="actions">
+      <button class="btn" onclick="check4()">Проверить</button>
+      <button class="btn ghost" onclick="reset4()">Сбросить</button>
+    </div>
+  </section>
+
+  <!-- ============ ЗАДАНИЕ 5 ============ -->
+  <section class="task locked" id="task5">
+    <h2><span class="task-num">5</span> Верно или неверно? <span class="task-status" id="st5">не выполнено</span></h2>
+    <p class="task-desc">Прочитай утверждение и выбери «Верно» или «Неверно».</p>
+    <div id="tf"></div>
+    <div class="actions">
+      <button class="btn" onclick="check5()">Проверить</button>
+      <button class="btn ghost" onclick="reset5()">Сбросить</button>
+    </div>
+  </section>
+
+  <!-- ============ ИТОГ ============ -->
+  <div id="final">
+    <h2>Тренажёр пройден!</h2>
+    <div class="score"><span id="final-score">0</span> / <span id="final-max">0</span></div>
+    <div class="mark" id="final-mark"></div>
+    <button class="btn ghost" style="margin-top:16px;background:#fff;color:#2563eb;border-color:#fff;" onclick="location.reload()">Пройти заново</button>
+  </div>
+
+</main>
+
+<script>
+/* ============================================================
+   ОБЩАЯ ЛОГИКА
+   ============================================================ */
+const state = {
+  t1: null, t2: null, t3: null, t4: null, t5: null
+};
+const MAX_SCORES = { t1: 10, t2: 5, t3: 5, t4: 5, t5: 5 };
+const TOTAL_MAX = 30;
+
+function updateProgress(){
+  const done = Object.values(state).filter(v => v !== null).length;
+  document.getElementById('tasks-done').textContent = done;
+  const score = Object.values(state).reduce((s,v)=> s + (v||0), 0);
+  document.getElementById('score').textContent = score;
+  document.getElementById('progress').style.width = (done/5*100) + '%';
+
+  if(done === 5){
+    document.getElementById('final-score').textContent = score;
+    document.getElementById('final-max').textContent = TOTAL_MAX;
+    const percent = score / TOTAL_MAX * 100;
+    let mark = '';
+    if(percent >= 85) mark = 'Оценка: 5 — отличная работа! 🎉';
+    else if(percent >= 70) mark = 'Оценка: 4 — хороший результат 👍';
+    else if(percent >= 50) mark = 'Оценка: 3 — материал усвоен частично, повтори темы.';
+    else mark = 'Оценка: 2 — стоит ещё раз перечитать теорию.';
+    document.getElementById('final-mark').textContent = mark;
+    document.getElementById('final').classList.add('show');
+    document.getElementById('final').scrollIntoView({behavior:'smooth'});
+  }
+}
+
+function setStatus(id, score, max){
+  const el = document.getElementById(id);
+  el.textContent = `баллы: ${score} / ${max}`;
+  el.classList.remove('ok','bad');
+  el.classList.add(score === max ? 'ok' : 'bad');
+}
+
+function unlock(id){ document.getElementById(id).classList.remove('locked'); }
+
+/* ============================================================
+   ЗАДАНИЕ 1 — КЛАССИФИКАЦИЯ
+   ============================================================ */
+const programs1 = [
+  {name:'Windows 11',            type:'system'},
+  {name:'Microsoft Word',        type:'app'},
+  {name:'Python',                type:'dev'},
+  {name:'Антивирус Kaspersky',   type:'system'},
+  {name:'Google Chrome',         type:'app'},
+  {name:'PascalABC',             type:'dev'},
+  {name:'7-Zip',                 type:'system'},
+  {name:'Paint',                 type:'app'},
+  {name:'Драйвер видеокарты',    type:'system'},
+  {name:'Scratch',               type:'dev'}
+];
+const pool = document.getElementById('pool');
+const zones = document.querySelectorAll('.zone');
+let picked = null;
+
+function makeChip(item){
+  const c = document.createElement('div');
+  c.className = 'chip';
+  c.draggable = true;
+  c.dataset.type = item.type;
+  c.textContent = item.name;
+  c.addEventListener('dragstart', e=>{ c.classList.add('dragging'); e.dataTransfer.setData('text/plain',''); });
+  c.addEventListener('dragend', ()=> c.classList.remove('dragging'));
+  c.addEventListener('click', ()=>{
+    if(c.classList.contains('picked')){
+      c.classList.remove('picked'); picked = null; return;
+    }
+    if(picked) picked.classList.remove('picked');
+    picked = c; c.classList.add('picked');
+  });
+  return c;
+}
+function init1(){
+  pool.innerHTML = ''; picked = null;
+  zones.forEach(z=> z.querySelector('.zone-items').innerHTML = '');
+  [...programs1].sort(()=>Math.random()-0.5).forEach(it=> pool.appendChild(makeChip(it)));
+}
+zones.forEach(z=>{
+  z.addEventListener('dragover', e=>{ e.preventDefault(); z.classList.add('drag-over'); });
+  z.addEventListener('dragleave', ()=> z.classList.remove('drag-over'));
+  z.addEventListener('drop', e=>{
+    e.preventDefault(); z.classList.remove('drag-over');
+    const d = document.querySelector('.chip.dragging');
+    if(d){ d.classList.remove('correct','wrong'); d.classList.remove('picked'); picked = null; z.querySelector('.zone-items').appendChild(d); }
+  });
+  z.addEventListener('click', ()=>{
+    if(picked){ picked.classList.remove('picked','correct','wrong'); z.querySelector('.zone-items').appendChild(picked); picked = null; }
+  });
+});
+pool.addEventListener('dragover', e=> e.preventDefault());
+pool.addEventListener('drop', e=>{
+  e.preventDefault();
+  const d = document.querySelector('.chip.dragging');
+  if(d){ d.classList.remove('correct','wrong'); pool.appendChild(d); }
+});
+pool.addEventListener('click', e=>{
+  if(picked && e.target === pool){ picked.classList.remove('picked'); pool.appendChild(picked); picked = null; }
+});
+
+function check1(){
+  let ok = 0, total = 0;
+  zones.forEach(z=>{
+    z.querySelectorAll('.chip').forEach(c=>{
+      total++;
+      c.classList.remove('correct','wrong');
+      if(c.dataset.type === z.dataset.type){ c.classList.add('correct'); ok++; }
+      else c.classList.add('wrong');
+    });
+  });
+  const inPool = pool.querySelectorAll('.chip').length;
+  if(inPool > 0){ alert('Не все программы распределены (осталось ' + inPool + ').'); return; }
+  state.t1 = ok;
+  setStatus('st1', ok, MAX_SCORES.t1);
+  updateProgress(); unlock('task2');
+}
+function reset1(){ init1(); state.t1 = null; document.getElementById('st1').textContent = 'не выполнено'; document.getElementById('st1').className = 'task-status'; updateProgress(); }
+init1();
+
+/* ============================================================
+   ЗАДАНИЕ 2 — СООТНЕСИ ПАРЫ
+   ============================================================ */
+const pairs2 = [
+  {id:1, left:'Microsoft Excel',   right:'Электронные таблицы'},
+  {id:2, left:'7-Zip',             right:'Архивация файлов'},
+  {id:3, left:'Python',            right:'Среда программирования'},
+  {id:4, left:'Антивирус',         right:'Защита от вредоносных программ'},
+  {id:5, left:'Windows',           right:'Операционная система'}
+];
+let selLeft = null, selRight = null, matched2 = 0;
+
+function init2(){
+  const L = document.getElementById('match-left');
+  const R = document.getElementById('match-right');
+  L.innerHTML = ''; R.innerHTML = '';
+  matched2 = 0; selLeft = selRight = null;
+  [...pairs2].sort(()=>Math.random()-0.5).forEach(p=>{
+    const el = document.createElement('div');
+    el.className = 'match-item'; el.dataset.id = p.id;
+    el.textContent = p.left;
+    el.onclick = ()=> pickLeft(el);
+    L.appendChild(el);
+  });
+  [...pairs2].sort(()=>Math.random()-0.5).forEach(p=>{
+    const el = document.createElement('div');
+    el.className = 'match-item'; el.dataset.id = p.id;
+    el.textContent = p.right;
+    el.onclick = ()=> pickRight(el);
+    R.appendChild(el);
+  });
+}
+function pickLeft(el){
+  if(el.classList.contains('matched')) return;
+  if(selLeft) selLeft.classList.remove('selected');
+  selLeft = el; el.classList.add('selected');
+  tryMatch();
+}
+function pickRight(el){
+  if(el.classList.contains('matched')) return;
+  if(selRight) selRight.classList.remove('selected');
+  selRight = el; el.classList.add('selected');
+  tryMatch();
+}
+function tryMatch(){
+  if(!selLeft || !selRight) return;
+  if(selLeft.dataset.id === selRight.dataset.id){
+    selLeft.classList.add('matched'); selRight.classList.add('matched');
+    selLeft.classList.remove('selected'); selRight.classList.remove('selected');
+    matched2++;
+    selLeft = selRight = null;
+    if(matched2 === pairs2.length){
+      state.t2 = MAX_SCORES.t2;
+      setStatus('st2', MAX_SCORES.t2, MAX_SCORES.t2);
+      updateProgress(); unlock('task3');
+    }
+  } else {
+    const l = selLeft, r = selRight;
+    l.classList.add('wrong'); r.classList.add('wrong');
+    setTimeout(()=>{
+      l.classList.remove('wrong','selected'); r.classList.remove('wrong','selected');
+    }, 700);
+    selLeft = selRight = null;
+  }
+}
+function reset2(){ init2(); state.t2 = null; document.getElementById('st2').textContent = 'не выполнено'; document.getElementById('st2').className = 'task-status'; updateProgress(); }
+init2();
+
+/* ============================================================
+   ЗАДАНИЕ 3 — ПРОПУСКИ
+   ============================================================ */
+function norm(s){
+  return s.trim().toLowerCase().replace(/ё/g,'е').replace(/\s+/g,' ');
+}
+function check3(){
+  const inputs = document.querySelectorAll('.fill-input');
+  let ok = 0;
+  inputs.forEach(inp=>{
+    inp.classList.remove('correct','wrong');
+    const answers = inp.dataset.answer.split('|').map(norm);
+    if(answers.includes(norm(inp.value))){ inp.classList.add('correct'); ok++; }
+    else if(inp.value.trim() !== '') inp.classList.add('wrong');
+  });
+  state.t3 = ok;
+  setStatus('st3', ok, MAX_SCORES.t3);
+  updateProgress(); unlock('task4');
+}
+function reset3(){
+  document.querySelectorAll('.fill-input').forEach(i=>{ i.value=''; i.classList.remove('correct','wrong'); });
+  state.t3 = null; document.getElementById('st3').textContent = 'не выполнено'; document.getElementById('st3').className = 'task-status'; updateProgress();
+}
+
+/* ============================================================
+   ЗАДАНИЕ 4 — ВИКТОРИНА
+   ============================================================ */
+const quizData = [
+  { q:'Какая группа ПО обеспечивает работу компьютера и взаимодействие с устройствами?',
+    opts:['Прикладное','Системное','Инструментальное','Игровое'], correct:1 },
+  { q:'Microsoft Word — это…',
+    opts:['системное ПО','прикладное ПО','инструментальное ПО','драйвер'], correct:1 },
+  { q:'Программа, которую можно бесплатно скачать и использовать без ограничений, — это…',
+    opts:['лицензионное ПО','свободное ПО','условно-бесплатное ПО','пиратское ПО'], correct:1 },
+  { q:'Что относится к инструментальному ПО?',
+    opts:['Браузер','Python','Антивирус','Операционная система'], correct:1 },
+  { q:'Какое ПО управляет всеми устройствами компьютера?',
+    opts:['Текстовый редактор','Операционная система','Архиватор','Браузер'], correct:1 }
+];
+function init4(){
+  const box = document.getElementById('quiz');
+  box.innerHTML = '';
+  quizData.forEach((it,i)=>{
+    const d = document.createElement('div');
+    d.className = 'quiz-question'; d.dataset.correct = it.correct;
+    d.innerHTML = `<p>${i+1}. ${it.q}</p><div class="quiz-options"></div>`;
+    const opts = d.querySelector('.quiz-options');
+    it.opts.forEach((o,idx)=>{
+      const b = document.createElement('button');
+      b.className = 'quiz-option'; b.dataset.idx = idx; b.textContent = o;
+      b.onclick = ()=>{
+        opts.querySelectorAll('.quiz-option').forEach(x=> x.classList.remove('chosen'));
+        b.classList.add('chosen');
+      };
+      opts.appendChild(b);
+    });
+    box.appendChild(d);
+  });
+}
+function check4(){
+  let ok = 0;
+  document.querySelectorAll('.quiz-question').forEach(q=>{
+    const correct = +q.dataset.correct;
+    const chosen = q.querySelector('.quiz-option.chosen');
+    q.querySelectorAll('.quiz-option').forEach(o=> o.classList.remove('wrong','correct'));
+    if(chosen && +chosen.dataset.idx === correct){ ok++; chosen.classList.add('correct'); }
+    else {
+      if(chosen) chosen.classList.add('wrong');
+      q.querySelectorAll('.quiz-option')[correct].classList.add('correct');
+    }
+  });
+  state.t4 = ok;
+  setStatus('st4', ok, MAX_SCORES.t4);
+  updateProgress(); unlock('task5');
+}
+function reset4(){ init4(); state.t4 = null; document.getElementById('st4').textContent = 'не выполнено'; document.getElementById('st4').className = 'task-status'; updateProgress(); }
+init4();
+
+/* ============================================================
+   ЗАДАНИЕ 5 — ВЕРНО / НЕВЕРНО
+   ============================================================ */
+const tfData = [
+  {text:'Операционная система относится к прикладному ПО.', answer:false},
+  {text:'Архиватор 7-Zip относится к системному ПО.', answer:true},
+  {text:'Свободное ПО можно использовать без оплаты и ограничений.', answer:true},
+  {text:'Python — это прикладная программа для работы с текстом.', answer:false},
+  {text:'За использование пиратского ПО в РФ предусмотрена ответственность.', answer:true}
+];
+function init5(){
+  const box = document.getElementById('tf');
+  box.innerHTML = '';
+  tfData.forEach((it,i)=>{
+    const d = document.createElement('div');
+    d.className = 'tf-item'; d.dataset.idx = i; d.dataset.answer = it.answer;
+    d.innerHTML = `<p>${i+1}. ${it.text}</p>
+      <div class="tf-buttons">
+        <button class="tf-btn" data-val="true">Верно</button>
+        <button class="tf-btn" data-val="false">Неверно</button>
+      </div>`;
+    d.querySelectorAll('.tf-btn').forEach(b=>{
+      b.onclick = ()=>{
+        d.querySelectorAll('.tf-btn').forEach(x=> x.classList.remove('active'));
+        b.classList.add('active');
+        d.dataset.chosen = b.dataset.val;
+      };
+    });
+    box.appendChild(d);
+  });
+}
+function check5(){
+  let ok = 0;
+  document.querySelectorAll('.tf-item').forEach(d=>{
+    d.classList.remove('correct','wrong');
+    const ans = d.dataset.answer === 'true';
+    const chosen = d.dataset.chosen === 'true';
+    if(d.dataset.chosen === d.dataset.answer){ d.classList.add('correct'); ok++; }
+    else if(d.dataset.chosen !== undefined) d.classList.add('wrong');
+  });
+  state.t5 = ok;
+  setStatus('st5', ok, MAX_SCORES.t5);
+  updateProgress();
+}
+function reset5(){ init5(); state.t5 = null; document.getElementById('st5').textContent = 'не выполнено'; document.getElementById('st5').className = 'task-status'; updateProgress(); }
+init5();
+
+</script>
+</body>
+</html>
